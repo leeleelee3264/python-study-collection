@@ -24,6 +24,7 @@ for article in articles:
     broadCast = article.select_one('span._sp_each_source')
     final = broadCast.text.split(' ')[0].replace('언론사', ' ')
     ws1.append([title, url, final, thumbnail])
-    wb.save(filename='articles.xlsx')
+    
+wb.save(filename='articles.xlsx')
 
 driver.quit()
