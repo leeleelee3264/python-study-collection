@@ -1,0 +1,20 @@
+.box_container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    column-gap: 10px;
+    padding: 10px;
+}
+
+
+.console_part {
+    padding: 5px;
+    background: aliceblue;
+}
+
+/*.data_part {*/
+/*    flex-grow: 3;*/
+/*}*/
+
+.DateRangePickerInput {
+    width: 100%;
+}

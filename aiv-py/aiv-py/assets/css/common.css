@@ -1,0 +1,30 @@
+/* 노토산스 font */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 100;
+  src: url(../fonts/NotoSansKr/NotoSansKR-Thin.woff2) format('woff2'),
+       url(../fonts/NotoSansKr/NotoSansKR-Thin.woff) format('woff'),
+       url(../fonts/NotoSansKr/NotoSansKR-Thin.otf) format('opentype');
+}
+
+* {margin:0;padding:0;box-sizing: border-box;}
+html,body {height:100%;font-family:'Noto Sans KR', "맑은 고딕", Dotum, "돋움", Gulim, "굴림", Arial, Helvetica,
+sans-serif;font-size: 13px; font-weight: bold}
+
+button {
+    background: white;
+}
+
+label {
+    margin: 5px;
+}
+
+input {
+    margin: 5px;
+}
+
+h3 {
+    margin-left: 10px;
+}
+
