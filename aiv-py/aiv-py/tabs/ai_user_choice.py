@@ -6,6 +6,8 @@ from datetime import date, timedelta
 from dbModule import DataBase
 from maindash import my_app
 from dash.dependencies import Input, Output, State
+import folium
+
 
 # layout for ai_user_choice
 dbConnect = DataBase()

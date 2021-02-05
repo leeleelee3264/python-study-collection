@@ -9,20 +9,24 @@ from callBacks import activity_data as ad
 
 from util import Util
 
+import plotly.express as px
+import pandas as pd
+
+
 layout = html.Div(
     children=[
         html.Div(
             className="row",
             children=[
                 html.Div(
-                    className='three columns div-user-controls',
+                    className='two columns div-user-controls',
                     children=[
-                        html.H2('Activity Data'),
-                        html.P('Input Id (1-999)'),
+                        html.H2('Total detail'),
+                        html.P('Target User Id'),
                         html.Div(
                             className="div-for-dropdown",
                             children=[
-                                dcc.Input(id='actUser', type='text', placeholder='ex)230,232...'),
+                                dcc.Input(id='ownerId', type='text'),
                             ]
                         ),
                         html.P('Date Range'),
@@ -30,98 +34,35 @@ layout = html.Div(
                             className="div-for-dropdown",
                             children=[
 
-                                dcc.DatePickerSingle(
-                                    id='startDate',
-                                    className='div-for-date',
-                                    min_date_allowed=date(1990, 1, 1),
-                                    max_date_allowed=date(2090, 1, 1),
-                                    initial_visible_month=Util.get_previous_month_with_last_date(date.today()).replace(
-                                        day=1),
-                                    date=Util.get_previous_month_with_last_date(date.today()).replace(day=1),
+                                dcc.DatePickerRange(
+                                    id='targetDate',
+                                    start_date=Util.get_previous_month_with_last_date(date.today()).replace(day=1),
+                                    start_date_placeholder_text='Start Date',
+                                    end_date=Util.get_previous_month_with_last_date(date.today()),
                                     display_format='YYYY-MM-DD'
                                 ),
-                                dcc.DatePickerSingle(
-                                    id='endDate',
-                                    className='div-for-date',
-                                    min_date_allowed=date(1990, 1, 1),
-                                    max_date_allowed=date(2090, 1, 1),
-                                    initial_visible_month=Util.get_previous_month_with_last_date(date.today()),
-                                    date=Util.get_previous_month_with_last_date(date.today()),
-                                    display_format='YYYY-MM-DD'
-                                )
                             ]
                         ),
+
                         html.P('Activity Choice'),
                         html.Div(
                             className='div-for-dropdown',
                             children=[
                                 dcc.Dropdown(
-                                    id='activity',
+                                    id='actType',
                                     options=[
+                                        {'label': '수면/기상', 'value': 'SLEEP'},
+                                        {'label': '외출', 'value': 'GO_OUT'},
+                                        {'label': '용변/화장실', 'value': 'TOILET'},
+                                        {'label': '주방', 'value': 'KITCHEN'},
                                         {'label': 'TV', 'value': 'TV'},
-                                        {'label': 'KITCHEN', 'value': 'KITCHEN'},
-                                        {'label': 'RESTROOM', 'value': 'RESTROOM'},
-                                        {'label': 'TOILET', 'value': 'TOILET'},
                                         {'label': 'MEDICATION', 'value': 'MEDICATION'},
-                                        {'label': 'ETC', 'value': 'ETC'}
+                                        {'label': '운동량', 'value': '?'}
                                     ],
-                                    value='TV'
+                                    value='SLEEP'
                                 ),
                             ]
                         ),
-                        html.P('Weekdays'),
-                        html.Div(
-                            className='div-for-dropdown',
-                            children=[
-                                dcc.Checklist(
-                                    id='weekdayChoice',
-                                    options=[
-                                        {'label': 'Mon', 'value': 1},
-                                        {'label': 'Tue', 'value': 2},
-                                        {'label': 'Wed', 'value': 3},
-                                        {'label': 'Thu', 'value': 4},
-                                        {'label': 'Fri', 'value': 5},
-                                        {'label': 'Sat', 'value': 6},
-                                        {'label': 'Sun', 'value': 7},
-                                    ],
-                                    value=[i for i in range(1, 8, 1)],
-                                    labelStyle={'display': 'inline-block'}
-                                ),
-                            ]
-                        ),
-
-                        html.P('Legend'),
-                        html.Div(
-                            className='div-for-dropdown',
-                            children=[
-                                dcc.RadioItems(
-                                    id='legendType',
-                                    options=[
-                                        {'label': 'WeekDays', 'value': 'weekdays'},
-                                        {'label': 'People', 'value': 'people'}
-                                    ],
-                                    value='weekdays'
-                                ),
-                            ]
-                        ),
-                        html.P('limit(min)'),
-                        html.Div(
-                            className='div-for-slider',
-                            children=[
-                                dcc.Slider(
-                                    id='actLimit',
-                                    min=0,
-                                    max=600,
-                                    step=None,
-                                    marks={
-                                        i: str(i) for i in range(0, 660, 60)
-
-                                    },
-                                    value=60
-                                ),
-                            ]
-                        ),
-
                         html.Button('start', id='startActivity'),
                     ]
                 ),
@@ -130,9 +71,13 @@ layout = html.Div(
                     className='nine columns div-for-charts bg-grey',
                     children=[
                         html.Div(
-                            className='data_part',
                             children=[
-                                html.B(id='out_test2')
+                                dcc.Graph(
+                                    id='first-graph'
+                                ),
+                                dcc.Graph(
+                                    id='second-graph',
+                                )
                             ]
                         )
                     ]
@@ -143,15 +88,26 @@ layout = html.Div(
     ])
 
 
+# first graph
 @my_app.callback(
-    Output('out_test2', 'children'),
+    Output('first-graph', 'figure'),
     Input('startActivity', 'n_clicks'),
-    State('actUser', 'value'), State('startDate', 'date'), State('endDate', 'date'), State('activity', 'value'),
-    State('weekdayChoice', 'value'), State('legendType', 'value'), State('actLimit', 'value'),
+    State('ownerId', 'value'), [State('targetDate', 'start_date'), State('targetDate', 'end_date')], State('actType', 'value'),
 )
-def activity_data(n_clicks, userId, startDate, endDate, actType, weeks, legend, limit):
-    print(f'{userId} {startDate} {endDate} {actType} {weeks} {legend} {limit}')
+def activity_data(n_clicks, ownerId, start_date, end_date, actType):
 
-    print(ad.activity_data(userId, startDate, endDate, actType, weeks, legend, limit))
+    df = ad.act_duration(ownerId, actType, start_date, end_date)
 
-    return ''
+    # df = pd.DataFrame({
+    #     "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
+    #     "Amount": [4, 1, 2, 2, 4, 5],
+    #     "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
+    # })
+
+    print(df)
+    fig = px.bar(df, x='act_date', y="duration", barmode="group")
+
+    return fig
+
+
+# second graph
