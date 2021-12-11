@@ -1,0 +1,647 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="{% static 'images/icon/favicon.png' %}">
+
+    <title>SAFEWATCH MAP VIEW</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+{#    <link rel="stylesheet" href="{% static 'css/monitor/style.css' %}">#}
+    <style>
+        .wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        #sidebar {
+            width: 350px;
+            top: 0;
+            left: 0;
+            background: #7386D5;
+            color: #fff;
+            transition: all 0.3s;
+            overflow-y: scroll;
+        }
+
+        #sidebar li {
+            font-size: 14px;
+            font-family: monospace, monospace, monospace;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        #sidebar li a {
+            color: #ffff00;
+        }
+
+        #sidebar li span.span-device-id {
+            display: none;
+        }
+
+        #sidebar li a img {
+            width: 20px;
+            height: 20px;
+        }
+
+        #content {
+            width: 100%;
+            height: 100%;
+        }
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn-info {
+            margin-right: 2px;
+        }
+
+        .div-info-window img {
+            height: 40px;
+            width: 40px;
+        }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <script src="{% static 'js/sw_util.js' %}"></script>
+</head>
+
+<body>
+
+<div class="wrapper">
+    <nav id="sidebar">
+        <div>
+            <p>긴급</p>
+            <ul class="ul-emergency-list">
+                <template id="template-emergency-device-no-pos">
+                    <li class="device"></li>
+                </template>
+
+                <template id="template-emergency-device-with-pos">
+                    <li class="device">
+                        <a class="a-device-info" href="#">
+                            <span class="span-device-nickname"></span>
+                            <span class="span-device-id"></span>
+                        </a>
+                        <a class="a-emergency-track" href="#"><img src="{% static 'images/icon/siren.gif' %}"/></a>
+                    </li>
+                </template>
+
+                <template id="template-no-emergency">
+                    <li>지금은 평화로운 상태입니다.</li>
+                </template>
+
+{#                {% for row in emergency_list %}#}
+{#                    <li class="device">#}
+{#                    {% if row.latitude == 0.0 and row.longitude == 0.0 %}#}
+{#                        {{ row.nickname }}#}
+{#                    {% else %}#}
+{#                        <a class="a-device-info" href="#">{{ row.nickname }}<span class="span-device-id">{{ row.device_id }}</span></a>#}
+{#                        <a class="a-emergency-track" href="#"><img src="{% static 'images/icon/siren.gif' %}"/></a>#}
+{#                    {% endif %}#}
+{#                    </li>#}
+{#                {% empty %}#}
+{#                    <li>지금은 평화로운 상태입니다.</li>#}
+{#                {% endfor %}#}
+            </ul>
+        </div>
+        <div>
+            <p>전체</p>
+            <ul class="ul-normal-list">
+                <template id="template-normal-device-no-pos">
+                    <li class="device">
+                        <span class="span-device-nickname"></span>
+                        <span class="span-device-id"></span>
+                    </li>
+                </template>
+
+                <template id="template-normal-device-with-pos">
+                    <li class="device">
+                        <a class="a-device-info" href="#">
+                            <span class="span-device-nickname"></span>
+                            <span class="span-device-id"></span>
+                        </a>
+                    </li>
+                </template>
+{##}
+{#                {% for row in this_list %}#}
+{#                    {% if row.latitude == 0.0 and row.longitude == 0.0 %}#}
+{#                    <li class="device">{{ row.nickname }}<span class="span-device-id">{{ row.device_id }}</span></li>#}
+{#                    {% else %}#}
+{#                    <li class="device"><a class="a-device-info" href="#">{{ row.nickname }}<span class="span-device-id">{{ row.device_id }}</span></a></li>#}
+{#                    {% endif %}#}
+{#                {% endfor %}#}
+            </ul>
+        </div>
+
+        <div class="fixed-bottom mb-2 ml-2">
+            <img class="mb-4" src="{% static 'images/monitor/logo.png' %}" alt="SAFEWATCH" width="72" height="72">
+            <a class="ml-5" href="{% url 'monitor.logout' %}">LOGOUT</a>
+        </div>
+    </nav>
+
+    <div id="content">
+        <div id="map"></div>
+    </div>
+
+    <div id="my-modal" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title font-weight-bold text-danger">EMERGENCY</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>긴급상황이 발생한 디바이스가 있습니다.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+var map = null;
+var marker_info = {};
+var device_info = {};
+var photo_info = {};
+
+var info_window, c_info_window;
+var viewGWControl;
+var gw_circle;
+var geo_coder;
+
+var trace_line;
+var trace_marker_list = [];
+
+var reload_timer;
+
+$(function () {
+    $(document).on('click', 'li.device a.a-device-info', function() {
+        {#let device_id = $(this).parent().parent().find('td.td-deveui').text();#}
+        let device_id = $(this).find('span.span-device-id').text();
+        console.log('DEVICE ID : ' + device_id);
+
+        if (device_id in marker_info && map !== null) {
+            let marker = marker_info[device_id];
+            map.setCenter(marker.getPosition());
+
+            new google.maps.event.trigger(marker, 'click');
+        } else {
+            alert('위치 정보가 존재하지 않습니다. ' + device_id);
+        }
+
+        return false;
+    });
+
+    $(document).on('click', 'li.device a.a-emergency-track', function() {
+        if (trace_line) {
+            trace_line.setMap(null);
+        }
+        for (let i=0; i<trace_marker_list.length; i++) {
+            trace_marker_list[i].setMap(null);
+        }
+
+        let device_id = $(this).parent().find('span.span-device-id').text();
+
+        sw_post({
+            request_url: "{% url 'monitor.trace_list' 'DEVICE_ID' %}".replace('/DEVICE_ID/', '/' + device_id + '/'),
+            data: {},
+            next_url: function(result) {
+                console.log(result.data);
+
+                path = [];
+                for (let i=0; i<result.data.trace_list.length; i++) {
+                    let row = result.data.trace_list[i];
+                    let pos = {
+                        lat: row.latitude,
+                        lng: row.longitude,
+                    };
+
+                    path.push(pos);
+
+                    let this_marker = new google.maps.Marker({
+                        position: pos,
+                        title: row.create_time + '(' + makeAgoText(row.create_timestamp) + ')',
+                        label: {
+                            text: (result.data.trace_list.length - i).toString(),
+                        },
+                        map: map,
+                    });
+
+                    if (i === result.data.trace_list.length - 1) {
+                        this_marker.setIcon({
+                            url: 'http://maps.google.com/mapfiles/ms/micons/red-pushpin.png',
+                        });
+
+                        this_marker.setZIndex(google.maps.Marker.MAX_ZINDEX);
+                    }
+
+                    trace_marker_list.push(this_marker);
+                }
+
+                // Define a symbol using a predefined path (an arrow)
+                // supplied by the Google Maps JavaScript API.
+                var lineSymbol = {
+                  path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+                };
+
+                // Create the polyline and add the symbol via the 'icons' property.
+                trace_line = new google.maps.Polyline({
+                  path: path,
+                  strokeColor: '#FF0000',
+                  icons: [{
+                    icon: lineSymbol,
+                    offset: '100%'
+                  }],
+                  map: map
+                });
+            }
+        });
+
+        return false;
+    });
+
+    $(document).on('click', '.btn-info-window-show-gw', function() {
+        let device_id = $(this).closest('div').find('span').text();
+        showGW(device_id);
+    });
+
+    $(document).on('click', '.btn-info-window-hide-gw', function() {
+        hideGW();
+    });
+
+    $(document).on('click', '.btn-info-window-stop-trace', function() {
+        let device_id = $(this).closest('div').find('span').text();
+        stopTrace(device_id);
+    });
+
+    reload_timer = setInterval(function() {
+        getDeviceList();
+    }, 60 * 1000);
+});
+
+function ViewGWControl(controlDiv, map) {
+    var control = this;
+    control._enable = true;
+
+    // Set CSS for the control border.
+    var controlUI = document.createElement('div');
+    controlUI.style.backgroundColor = '#fff';
+    controlUI.style.border = '2px solid #fff';
+    controlUI.style.borderRadius = '3px';
+    controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.marginBottom = '22px';
+    controlUI.style.textAlign = 'center';
+    controlUI.title = 'toggle Gateway Circle';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior.
+    var controlText = document.createElement('div');
+    controlText.style.color = 'rgb(25,25,25)';
+    controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+    controlText.style.fontSize = '16px';
+    controlText.style.lineHeight = '38px';
+    controlText.style.paddingLeft = '5px';
+    controlText.style.paddingRight = '5px';
+    controlText.innerHTML = 'View Gateway Circle';
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners: simply set the map to Chicago.
+    controlUI.addEventListener('click', function() {
+        control.toggleEnable();
+    });
+}
+
+ViewGWControl.prototype._enable = null;
+
+ViewGWControl.prototype.toggleEnable = function() {
+    this._enable = !this._enable;
+};
+
+ViewGWControl.prototype.getEnable = function() {
+    return this._enable;
+};
+
+function showGW(device_id) {
+    let this_device_info = device_info[device_id];
+    if (!this_device_info) {
+        return;
+    }
+
+    let circle_center = { lat: this_device_info.gw_latitude, lng: this_device_info.gw_longitude };
+    gw_circle.setCenter(circle_center);
+    gw_circle.setMap(map);
+    map.setCenter(circle_center);
+
+    let ago = makeAgoText(this_device_info.gw_location_time);
+    let gw_info_text = '';
+    if (this_device_info.gw_address) {
+        gw_info_text = device_id + ': ' + this_device_info.gw_address + '(' + ago + ')';
+        c_info_window.setContent(gw_info_text);
+    } else {
+        getAddress(circle_center, function (new_address) {
+            this_device_info.gw_address = new_address;
+            gw_info_text = device_id + ': ' + this_device_info.gw_address + '(' + ago + ')';
+            c_info_window.setContent(gw_info_text);
+        });
+    }
+
+    gw_circle.addListener('click', function () {
+        c_info_window.setPosition(circle_center);
+        c_info_window.open(map, gw_circle);
+    });
+
+    gw_circle.addListener('mouseout', function() {
+        c_info_window.close();
+    });
+}
+
+function hideGW() {
+    c_info_window.close();
+    gw_circle.setMap(null);
+}
+
+function stopTrace(device_id) {
+    sw_post({
+        request_url: "{% url 'monitor.stop_trace' 'DEVICE_ID' %}".replace('/DEVICE_ID/', '/' + device_id + '/'),
+        data: {
+        },
+        next_url: function() {
+            getDeviceList();
+        }
+    });
+}
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: {
+          lat: {{ center_latitude }},
+          lng: {{ center_longitude }},
+      },
+      zoom: 14
+    });
+
+    geo_coder = new google.maps.Geocoder();
+
+    // Custom control
+    var viewGWControlDiv = document.createElement('div');
+    viewGWControl = new ViewGWControl(viewGWControlDiv, map);
+
+    viewGWControlDiv.index = 1;
+    {#map.controls[google.maps.ControlPosition.TOP_CENTER].push(viewGWControlDiv);#}
+
+    // info Window
+    info_window = new google.maps.InfoWindow();
+    c_info_window = new google.maps.InfoWindow();
+
+    // gw_circle
+    gw_circle = new google.maps.Circle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0.35,
+        map: null,
+        center: { lat: 0.0, lng: 0.0 },
+        radius: 1000,
+    });
+
+    getDeviceList();
+}
+
+function getDeviceList() {
+    sw_post({
+        request_url: '{{ request.path }}',
+        data: {},
+        init_url: "{% url 'monitor.login' %}",
+        next_url: function(result) {
+            console.log('reload');
+
+            for (let device_id in device_info) {
+                delete device_info[device_id];
+            }
+            device_info = {};
+
+            let li;
+            {# PROCESS EMERGENCY LIST #}
+            $('.ul-emergency-list').find('li').remove();
+            if (result.data.emergency_list.length === 0) {
+                li = $($('#template-no-emergency').html().trim());
+                $('.ul-emergency-list').append(li);
+            } else {
+                for (let i=0; i<result.data.emergency_list.length; i++) {
+                    let o = result.data.emergency_list[i];
+
+                    if (o.latitude === 0.0 && o.longitude === 0.0 ) {
+                        li = $($('#template-emergency-device-no-pos').html().trim());
+                    } else {
+                        li = $($('#template-emergency-device-with-pos').html().trim());
+                    }
+
+                    li.find('.span-device-nickname').text(o.nickname);
+                    li.find('.span-device-id').text(o.device_id);
+                    $('.ul-emergency-list').append(li);
+                }
+            }
+
+            {# PROCESS NORMARL LIST #}
+
+            $('.ul-normal-list').find('li').remove();
+            for (let i=0; i<result.data.this_list.length; i++) {
+                let o = result.data.this_list[i];
+                photo_info[o.device_id] = o.photo_url;
+
+                if (o.latitude === 0.0 && o.longitude === 0.0 ) {
+                    li = $($('#template-normal-device-no-pos').html().trim());
+                } else {
+                    li = $($('#template-normal-device-with-pos').html().trim());
+
+                    o.device_id in marker_info && marker_info[o.device_id].setMap(null);
+                    addMarker(o.device_id, o.nickname, o.last_location_time + '', {lat: o.latitude, lng: o.longitude}, o.marker);
+                }
+
+                li.find('.span-device-nickname').text(o.nickname);
+                li.find('.span-device-id').text(o.device_id);
+                $('.ul-normal-list').append(li);
+            }
+
+            if (result.data.emergency_list.length > 0) {
+                $('#my-modal').modal('show');
+            }
+        }
+    });
+}
+
+function addMarker(device_id, nickname, last_location_time, pos, marker_path) {
+    let marker = new google.maps.Marker({
+      map: map,
+      position: pos,
+      title: last_location_time,
+      label: {
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: 'green',
+          text: nickname,
+      },
+      icon: {
+          url: marker_path,
+          {#scaledSize: new google.maps.Size(30, 30),#}
+      }
+    });
+
+    marker.addListener('click', function() {
+        hideGW();
+
+        if (!(device_id in device_info)) {
+            getDeviceInfo(device_id, function() {
+                makeDeviceContent(device_id);
+            });
+        } else {
+            makeDeviceContent(device_id);
+        }
+    });
+
+    marker.addListener('mouseover', function() {
+        if (!(device_id in device_info)) {
+            getDeviceInfo(device_id, function() {
+                makeDeviceTitle(device_id);
+            });
+        } else {
+            makeDeviceTitle(device_id);
+        }
+    });
+
+  //store the marker object drawn in global array
+  marker_info[device_id] = marker;
+}
+
+function getDeviceInfo(device_id, cb) {
+    sw_post({
+        request_url: "{% url 'monitor.device_info' %}",
+        data: {
+            'device_id': device_id,
+        },
+        next_url: function(result) {
+            device_info[device_id] = result.data;
+            cb && cb();
+        }
+    });
+}
+
+function makeDeviceContent(device_id) {
+    info_window.setContent(makeInfoWindowContent(device_id));
+    info_window.open(map, marker_info[device_id]);
+}
+
+function makeDeviceTitle(device_id) {
+    let this_device_info = device_info[device_id];
+    let marker = marker_info[device_id];
+    let ago = makeAgoText(this_device_info.last_location_time);
+
+    if (this_device_info.address) {
+        marker.setTitle(this_device_info.address + '(' + ago + ')');
+    } else {
+        getAddress(marker.getPosition(), function(new_address) {
+            this_device_info.address = new_address;
+            marker.setTitle(this_device_info.address + '(' + ago + ')');
+        });
+    }
+}
+
+function makeAgoText(dt) {
+    let now = new Date().getTime() / 1000;
+    let diff = now - dt;
+
+    if (diff < 60) {
+        return '지금';
+    } else if ((diff /= 60) < 60) {
+        return (diff | 0) + '분 전';
+    } else if ((diff /= 60) < 24) {
+        return (diff | 0) + '시간 전';
+    } else if ((diff /= 24) < 30) {
+        return (diff | 0) + '일 전';
+    } else if ((diff /= 30) < 12) {
+        return (diff | 0) + '개월 전';
+    } else {
+        return (diff | 0) + '년 전';
+    }
+}
+
+function getAddress(latlng, cb) {
+    geo_coder.geocode({'location': latlng}, function(results, status) {
+        if (status === 'OK') {
+            cb(results[0].formatted_address);
+        } else {
+            console.log('getAddress: ' + status);
+            cb('');
+        }
+    });
+}
+
+function makeInfoWindowContent(device_id) {
+    let data = device_info[device_id];
+    let gd_s = "";
+    for (let i=0; i<data.guardian_list.length; i++) {
+        gd_s += "<li>" + data.guardian_list[i].name + "(" + data.guardian_list[i].phone_no + ")</li>";
+    }
+
+    return '<div class="div-info-window">' +
+        "<p>" + '<img src="' + photo_info[device_id] + '" />' + "</p>" +
+        "<p>device id : <span>" + device_id + "</span></p>" +
+        "<p>battery : " + data.battery_level + "</p>" +
+        "<p>유효기간 : " + data.expire_date + "</p>" +
+        "<p>보호자 정보</p>" +
+        "<ul>" + gd_s + "</ul>" +
+            '<p>' +
+        {#'<input type="button" class="btn btn-info btn-sm" value="GW 보이기" onClick=showGW(\'' + device_id + '\'); />' +#}
+        '<input type="button" class="btn btn-info btn-sm btn-info-window-show-gw" value="GW 보이기"/>' +
+        '<input type="button" class="btn btn-info btn-sm btn-info-window-hide-gw" value="GW 감추기"/>' +
+        '<input type="button" class="btn btn-info btn-sm btn-info-window-stop-trace" value="긴급해제"/>' +
+            '</p>' +
+    "</div>";
+}
+
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWQ9MQ0Cqu4QDnhNmJTkQSmk3GfPveIVs&callback=initMap" async defer></script>
+{##}
+{#<template>#}
+{#    <div>#}
+{#        <p>device id : <span></span></p>#}
+{#        <p>battery : <span></span></p>#}
+{#        <p>유효기간 : <span></span></p>#}
+{#        <p>보호자 정보</p>#}
+{#        <ul></ul>#}
+{#        <p>#}
+{#            <input type="button" class="btn btn-info btn-sm" value="GW 보이기" onClick=showGW(); />#}
+{#            <input type="button" class="btn btn-info btn-sm" value="GW 감추기" onClick=hideGW(); />#}
+{#            <input type="button" class="btn btn-info btn-sm btn-info-window-show-gw" value="긴급해제" onClick=stopTrace(); />#}
+{#         </p>#}
+{#    </div>#}
+{#</template>#}
+{##}
+{#<template>#}
+{#    <li></li>#}
+{#</template>#}
+
+</body>
+</html>

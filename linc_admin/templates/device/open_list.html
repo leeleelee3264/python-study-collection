@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}DEVICE LIST{% endblock %}
+
+{% block main %}
+<h2 class="pt-2">개통 목록[총 단말수 : <span class="text-danger">{{ this_list|length }}</span>]</h2>
+
+<table class="table table-hover text-monospace">
+<thead>
+    <th>devEUI</th>
+    <th>개통일자</th>
+    <th>유효기간</th>
+</thead>
+<tbody>
+    {% for row in this_list %}
+    <tr {% if row.old_uplink %}class="table-danger"{% endif %}>
+        <td>{{ row.deveui }}</td>
+        <td>{{ row.create_time }}</td>
+        <td>~ {{ row.expire_time }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+{% endblock %}
+
+{% block script_body %}
+<script>
+$(function() {
+    $('#btn_hour').on('click', function() {
+        console.log('btn_hour');
+
+        $('#btn_type').val('H');
+        $('#frm').submit();
+
+        return false;
+    });
+
+    $('#btn_day').on('click', function() {
+        console.log('btn_day');
+
+        $('#btn_type').val('D');
+        $('#frm').submit();
+
+        return false;
+    });
+
+    $('.btn_delete_history').on('click', function() {
+        if (confirm('기록(활동량, 세이프존, 긴급호출, 경로추적)을 모두 삭제하시겠습니까?') === false) {
+            return false;
+        }
+
+        var deveui = this.id.split('-')[1];
+
+        sw_post({
+            'request_url': '{% url "device.remove_history" %}',
+            'data': {
+                'deveui': deveui,
+            },
+            'next_url': function() {
+                location.reload();
+            }
+        });
+
+        return false;
+    });
+
+});
+</script>
+{% endblock %}

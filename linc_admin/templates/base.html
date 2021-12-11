@@ -1,0 +1,177 @@
+{% load static %}
+{% load my_tag %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" type="image/png" href="{% static 'images/icon/favicon.png' %}">
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sw.css' %}">
+    <style>
+    {% block style %}
+     /* The sidenav */
+    .sidenav {
+      height: 100%;
+      width: 200px;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: #111;
+      overflow-x: hidden;
+      padding-top: 20px;
+    }
+
+    /* Page content */
+    .main {
+      margin-left: 200px; /* Same as the width of the sidenav */
+    }
+    {% endblock %}
+    </style>
+
+    <title>{% block title %}LINC ADMIN TITLE{% endblock %}</title>
+
+{#    <script src="{% static "js/jquery-3.3.1.min.js" %}"></script>#}
+    {% block script_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">LINC ADMIN [{% get_settings 'RUNNING_MODE' %}]</a>
+      <input id="txt-search" class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search" value="{{ search_device }}">
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="nav-link" href="#">Sign out</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="container-fluid">
+         <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#">
+                  <span data-feather="home"></span>
+                  Dashboard <span class="sr-only">(current)</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.total_list' %}">
+                  <span data-feather="list"></span>
+                  전체 목록
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.use_list' %}">
+                  <span data-feather="list"></span>
+                  사용 목록
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.open_list' %}">
+                  <span data-feather="list"></span>
+                  개통 목록
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.unopen_list' %}">
+                  <span data-feather="list"></span>
+                  미개통 목록
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.owner_list' %}">
+                  <span data-feather="users"></span>
+                  내 폰 등록자 목록
+                </a>
+              </li>
+            </ul>
+
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>Saved reports</span>
+              <a class="d-flex align-items-center text-muted" href="#">
+                <span data-feather="plus-circle"></span>
+              </a>
+            </h6>
+            <ul class="nav flex-column mb-2">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.statistics' %}">
+                  <span data-feather="file-text"></span>
+                  출첵 / 퀴즈 현황
+                </a>
+              </li>
+            </ul>
+
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>디바이스 관리</span>
+            </h6>
+            <ul class="nav flex-column mb-2">
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.new' %}">
+                  <span data-feather="watch"></span>
+                  새 디바이스 등록
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.virtual_new' %}">
+                  <span data-feather="watch"></span>
+                  새 가상 디바이스 등록
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.expire_list' %}">
+                  <span data-feather="watch"></span>
+                  디바이스 속성 변경
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'device.atility_token' %}">
+                  <span data-feather="watch"></span>
+                  Atility Token 변경
+                </a>
+              </li>
+              <li>
+                <a class="nav-link" href="{% url 'device.manage_callback' %}">
+                  <span data-feather="settings"></span>
+                  Callback 관리
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+            {% block main %}
+            {% endblock %}
+        </main>
+        {% block modal %}
+        {% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+        feather.replace()
+    </script>
+
+    <script src="{% static 'js/sw_util.js' %}"></script>
+    {% block script_body %}{% endblock %}
+
+    <script>
+    $(function() {
+        $('#txt-search').on('keydown', function(e) {
+            if (e.keyCode === 13) {
+                location.href = '{{ request.path }}?device=' + $(this).val();
+            }
+        });
+    });
+    </script>
+</body>

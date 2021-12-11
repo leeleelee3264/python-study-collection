@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}DEVICE LIST{% endblock %}
+
+{% block main %}
+<div class="pt-2">
+<h2>콜백관리 목록[총 단말수 : <span class="text-danger">{{ this_list|length }}</span>]</h2>
+
+<table class="table table-striped table-hover text-monospace">
+    <thead>
+        <th>devEUI</th>
+        <th>appEUI</th>
+        <th>TP_ID</th>
+        <th>IF</th>
+        <th>SUBSCRIBE UPLINK</th>
+    </thead>
+    <tbody>
+    {% for info in this_list %}
+        <tr {% if info.grade == -1 %}class="table-danger"{% elif info.grade == 0 %}class="table-primary"{% endif %}>
+            <td>{{ info.deveui }}</td>
+            <td>{{ info.appeui }}</td>
+            <td>{{ info.tp_id }}</td>
+            <td>{{ info.if_type }}</td>
+            <td>
+            {% if info.subscribe_uplink %}
+                <input type="button" id="btn-delete-subscribe-uplink-{{ info.deveui }}" class="btn-delete-subscribe-uplink" value="삭제" />
+            {% else %}
+                <input type="button" id="btn-add-subscribe-uplink-{{ info.deveui }}" class="btn-add-subscribe-uplink" value="등록" />
+            {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}
+
+{% block script_body %}
+<script>
+$(function() {
+    $('#btn-search').on('click', function() {
+        let device = $('#txt-device').val().trim();
+        location.href = '{{ request.path }}?device=' + device;
+    });
+
+    $('.btn-delete-subscribe-uplink').on('click', function() {
+        let deveui = this['id'].split('-');
+        deveui = deveui[deveui.length-1];
+
+        if (!confirm(deveui + '의 callback을 삭제하시겠습니까?')) {
+            return false;
+        }
+
+        sw_post({
+            request_url: '{% url "device.manage_callback_remove" %}',
+            data: {
+                'deveui': deveui,
+            },
+            next_url: function() {
+                alert('삭제하였습니다.');
+                location.reload();
+            },
+            error: function() {
+            }
+        });
+
+        return false;
+    });
+
+    $('.btn-add-subscribe-uplink').on('click', function() {
+        let deveui = this['id'].split('-');
+        deveui = deveui[deveui.length-1];
+
+        if (!confirm(deveui + '의 callback을 등록하시겠습니까?')) {
+            return false;
+        }
+
+        sw_post({
+            request_url: '{% url "device.manage_callback_add" %}',
+            data: {
+                'deveui': deveui,
+            },
+            next_url: function() {
+                alert('등록하였습니다.');
+                location.reload();
+            },
+            error: function() {
+            }
+        });
+
+        return false;
+    });
+});
+</script>
+{% endblock %}

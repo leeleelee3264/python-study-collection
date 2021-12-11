@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<h2 class="pt-2">전체 리스트[총 단말수 : <span class="text-danger">{{ this_list|length }}</span>]</h2>
+
+<table class="table table-hover text-monospace">
+<thead>
+    <th>devEUI</th>
+    <th>마지막 로라통신</th>
+    <th>마지막 GPS 시간</th>
+    <th>개통일자</th>
+</thead>
+<tbody>
+    {% for row in this_list %}
+    <tr class="{{ row.level_class }}">
+        <td>{{ row.deveui }}</td>
+        <td>{{ row.last_uplink_time }}</td>
+        <td>{{ row.last_gps_time }}</td>
+        <td>{{ row.create_time }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{% endblock %}

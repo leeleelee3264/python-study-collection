@@ -1,0 +1,62 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="icon" type="image/png" href="{% static 'images/icon/favicon.png' %}">
+
+  <title>SignIn for Safewatch Web</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+  <!-- Custom styles for this template -->
+  <link rel="stylesheet" href="{% static 'css/signin.css' %}">
+</head>
+
+<body class="text-center">
+  <form class="form-signin">
+    <img class="mb-4" src="{% static 'images/monitor/logo.png' %}" alt="SAFEWATCH" width="72" height="72">
+    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+    <label for="txt-login-id" class="sr-only">Phone Number</label>
+    <input type="text" id="txt-login-id" class="form-control" placeholder="Phone Number" required autofocus>
+    <label for="txt-password" class="sr-only">Password</label>
+    <input type="password" id="txt-password" class="form-control" placeholder="Password" required>
+{#    <div class="checkbox mb-3">#}
+{#      <label>#}
+{#        <input type="checkbox" value="remember-me"> Remember me#}
+{#      </label>#}
+{#    </div>#}
+    <button id="btn-login" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+{#    <p class="mt-5 mb-3 text-muted">© 2018 DNX Co. Ltd. All rights reserved.</p>#}
+    <p class="mt-5 mb-3 text-muted">COPYRIGHT ⓒ KOREA ITS. All Rights Reserved.</p>
+  </form>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <script src="{% static 'js/sw_util.js' %}"></script>
+    <script>
+    $(function() {
+        $('#btn-login').on('click', function() {
+            sw_post({
+                request_url: "{% url 'monitor.login' %}",
+                data: {
+                    login_id: $('#txt-login-id').val(),
+                    login_password: $('#txt-password').val(),
+                },
+                next_url: function() {
+                    location.reload();
+                }
+            });
+
+            return false;
+        });
+    });
+    </script>
+</body>
+
+</html>

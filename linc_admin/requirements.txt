@@ -1,0 +1,10 @@
+django~=3.0.6
+django-redis
+hyper~=0.7.0
+mysqlclient
+requests~=2.23.0
+ujson~=3.0.0
+PyCryptodome
+
+
+lxml~=4.5.1

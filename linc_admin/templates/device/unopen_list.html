@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<h2 class="pt-5">비개통 목록[총 단말수 : <span class="text-danger">{{ this_list|length }}</span>]</h2>
+
+<table class="table table-hover">
+<thead>
+    <th>devEUI</th>
+</thead>
+<tbody>
+    {% for row in this_list %}
+    <tr>
+        <td>{{ row.deveui }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{% endblock %}

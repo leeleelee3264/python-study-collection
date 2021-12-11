@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}NEW VIRTUAL DEVICE{% endblock %}
+
+{% block style %}
+table tr td{
+   padding:3px !important;
+}
+
+table.class_selector td{
+   padding:3px !important;
+}
+{% endblock %}
+
+{% block main %}
+<div class="mt-2">
+    <input type="button" id="btn-create" class="btn btn-info ml-2" value="생성" />
+    <input type="button" id="btn-search" class="btn btn-info ml-2" value="검색" />
+</div>
+
+<div>
+<table class="table table-hover text-monospace">
+    <thead>
+        <tr>
+            <th>devEUI</th>
+            <th>product Key</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for info in this_list %}
+        <tr>
+            <td rowspan="2">{{ info.deveui }}</td>
+            <td>{{ info.product_key }}</td>
+        </tr>
+        <tr>
+            <td>{{ info.product_key2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block script_body %}
+<script>
+$(function() {
+    $('#btn-create').on('click', function() {
+        sw_post({
+            'url': '{{ request.path }}',
+            'data': {
+            },
+            'next_url': function(result) {
+                alert(JSON.stringify(result));
+                location.reload();
+            }
+        });
+
+        return false;
+    });
+
+    $('#btn-search').on('click', function() {
+        let country_code = $('#txt-country-code').val();
+
+        location.href = '{{ request.path }}?country_code=' + country_code;
+
+        return false;
+    });
+});
+</script>
+{% endblock %}

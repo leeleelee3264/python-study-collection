@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load my_tag %}
+
+{% block title %}DEVICE LIST{% endblock %}
+
+{% block main %}
+<div class="pt-2">
+<h2>유효기간 연장 목록[총 단말수 : <span class="text-danger">{{ this_list|length }}</span>]</h2>
+<p>
+    <input type="button" id="btn-delay-30" class="btn btn-info mr-1" value="30일 연장"/>
+    <input type="button" id="btn-delay-180" class="btn btn-info mr-1" value="180일 연장"/>
+    <input type="button" id="btn-delay-365" class="btn btn-info mr-1" value="365일 연장"/>
+
+    <input type="number" id="txt-day" class="mr-1" placeholder="날짜를 입력하세요." value="10" style="width: 70px"/>
+    <input type="button" id="btn-delay-custom" class="btn btn-info" value="일 연장"/>
+
+    <input type="number" id="txt-remain-day" class="mr-1 ml-5" placeholder="날짜를 입력하세요." value="0"  style="width: 70px" />
+    <input type="button" id="btn-remain-custom" class="btn btn-info" value="일 후 종료"/>
+    <input type="button" id="btn-begin" class="btn btn-info" value="일 후 시작"/>
+</p>
+<p>
+    <input type="number" id="txt-fw-mode" class="mr-1" value="2"  style="width: 70px" />
+    <input type="button" id="btn-modify-fw-mode" class="btn btn-info mr-5" value="GPS모드 변경"/>
+    <span>(시계,목걸이:2, 강아지,키링:5, 도난방지:8)</span>
+</p>
+
+<p>
+    <input type="number" id="txt-lora-period" class="mr-1" value="10"  style="width: 70px" />
+    <input type="button" id="btn-modify-lora-period" class="btn btn-info mr-2" value="로라주기 변경"/>
+    <input type="number" id="txt-deliver-days" class="mr-1 ml-5" value="30" style="width: 70px"/>일의 유효기간으로
+    <input type="text" id="txt-deliver-start" class="mr-1" value="{% get_deliver_date %}" style="width: 90px"/>부터 강제시작
+    <input type="button" id="btn-deliver" class="btn btn-danger mr-1" value="배송 시작" />
+    <input type="button" id="btn-remove-history" class="btn btn-danger mr-1" value="기록 삭제" />
+</p>
+
+<table class="table table-striped table-hover text-monospace">
+    <thead>
+        <th>devEUI</th>
+        <th>펌웨어 버전</th>
+        <th>펌웨어 모드</th>
+        <th>로라주기</th>
+        <th>만료일자</th>
+    </thead>
+    <tbody>
+    {% for info in this_list %}
+        <tr {% if info.grade == -1 %}class="table-danger"{% elif info.grade == 0 %}class="table-primary"{% endif %}>
+            <td><input type="checkbox" name="chk-deveui-{{ info.deveui }}" /> {{ info.deveui }}</td>
+            <td>{{ info.fw_ver }}</td>
+            <td>{{ info.fw_mode }}</td>
+            <td>{{ info.lora_period }}</td>
+            <td>{{ info.expire_time }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}
+
+{% block script_body %}
+<script>
+$(function() {
+    $('#btn_hour').on('click', function() {
+        console.log('btn_hour');
+
+        $('#btn_type').val('H');
+        $('#frm').submit();
+
+        return false;
+    });
+
+    $('#btn_day').on('click', function() {
+        console.log('btn_day');
+
+        $('#btn_type').val('D');
+        $('#frm').submit();
+
+        return false;
+    });
+
+    $('#btn-delay-30').on('click', function() {
+        req_delay(30, true);
+        return false;
+    });
+
+    $('#btn-delay-180').on('click', function() {
+        req_delay(180, true);
+        return false;
+    });
+
+    $('#btn-delay-365').on('click', function() {
+        req_delay(365, true);
+        return false;
+    });
+
+    $('#btn-delay-custom').on('click', function() {
+        let days = parseInt($('#txt-day').val());
+
+        req_delay(days, true);
+        return false;
+    });
+
+    $('#btn-remain-custom').on('click', function() {
+        let days = parseInt($('#txt-remain-day').val());
+
+        req_delay(days, false);
+    });
+
+    $('#btn-begin').on('click', function () {
+        let days = parseInt($('#txt-remain-day').val());
+
+        req_begin(days);
+    });
+
+    $('#btn-modify-fw-mode').on('click', function() {
+        let fw_mode = parseInt($('#txt-fw-mode').val());
+        req_change_fw_mode(fw_mode);
+    });
+
+    $('#btn-modify-lora-period').on('click', function() {
+        let lora_period = parseInt($('#txt-lora-period').val());
+        req_change_lora_period(lora_period);
+    });
+
+    $('#btn-deliver').on('click', function() {
+        let expire_days = parseInt($('#txt-deliver-days').val());
+        let start_date = $('#txt-deliver-start').val();
+
+        req_deliver(expire_days, start_date);
+    });
+
+    $('#btn-remove-history').on('click', function() {
+        remove_history();
+    });
+});
+
+function req_delay(days, is_extend) {
+    let target = [];
+    $('td input[type=checkbox]').each(function () {
+        if (this.checked === true) {
+            let deveui = this['name'].split('-')[2];
+            target.push(deveui);
+        }
+    });
+
+    if (target.length === 0) {
+        alert('디바이스를 선택하시기 바랍니다.');
+        return;
+    }
+
+    if (is_extend === true) {
+        if (confirm(target + '를\n' + days + '일 연장합니까?') === false) {
+            return;
+        }
+    } else {
+        if (confirm(target + '를\n' + days + '일 후 종료합니까?') === false) {
+            return;
+        }
+    }
+
+    sw_post({
+        request_url: '{% url "device.extend_expire" %}',
+        data: {
+            'target': target,
+            'days': days,
+            'is_extend': is_extend,
+        },
+        next_url: function() {
+            alert('연장하였습니다.');
+            location.reload();
+        }
+    });
+
+    return false;
+}
+
+function req_begin(days) {
+    let target = [];
+    $('td input[type=checkbox]').each(function () {
+        if (this.checked === true) {
+            let deveui = this['name'].split('-')[2];
+            target.push(deveui);
+        }
+    });
+
+    if (target.length === 0) {
+        alert('디바이스를 선택하시기 바랍니다.');
+        return;
+    }
+
+    if (confirm(target + '를\n' + days + '일 후부터 시작합니까?') === false) {
+        return;
+    }
+
+    sw_post({
+        request_url: '{% url "device.set_begin" %}',
+        data: {
+            'target': target,
+            'days': days,
+        },
+        next_url: function() {
+            alert('시작하였습니다.');
+            location.reload();
+        }
+    });
+
+    return false;
+}
+
+function req_change_fw_mode(new_fw_mode) {
+    let target = [];
+    $('td input[type=checkbox]').each(function () {
+        if (this.checked === true) {
+            let deveui = this['name'].split('-')[2];
+            target.push(deveui);
+        }
+    });
+
+    if (target.length === 0) {
+        alert('디바이스를 선택하시기 바랍니다.');
+        return;
+    }
+
+    if (confirm(target + '를\n' + new_fw_mode + ' 모드로 변경합니까?') === false) {
+        return;
+    }
+
+    sw_post({
+        request_url: '{% url "device.change_fw_mode" %}',
+        data: {
+            'target': target,
+            'fw_mode': new_fw_mode,
+        },
+        next_url: function() {
+            alert('변경하였습니다.');
+            location.reload();
+        }
+    });
+
+    return false;
+}
+
+function req_change_lora_period(new_lora_period) {
+    let target = [];
+    $('td input[type=checkbox]').each(function () {
+        if (this.checked === true) {
+            let deveui = this['name'].split('-')[2];
+            target.push(deveui);
+        }
+    });
+
+    if (target.length === 0) {
+        alert('디바이스를 선택하시기 바랍니다.');
+        return;
+    }
+
+    if (confirm(target + '를\n' + new_lora_period + '분 주기로 변경합니까?') === false) {
+        return;
+    }
+
+    sw_post({
+        request_url: '{% url "device.change_lora_period" %}',
+        data: {
+            'target': target,
+            'lora_period': new_lora_period,
+        },
+        next_url: function() {
+            alert('변경하였습니다.');
+            location.reload();
+        }
+    });
+
+    return false;
+}
+
+function req_deliver(expire_days, start_date) {
+    let target = [];
+    $('td input[type=checkbox]').each(function () {
+        if (this.checked === true) {
+            let deveui = this['name'].split('-')[2];
+            target.push(deveui);
+        }
+    });
+
+    if (target.length === 0) {
+        alert('디바이스를 선택하시기 바랍니다.');
+        return;
+    }
+
+    if (!confirm('배송을 시작할 경우, 디바이스의 기존 로그가 모두 삭제됩니다.\n\n' + target + '를 배송하시겠습니까?')) {
+        return;
+    }
+
+    sw_post({
+        request_url: "{% url 'device.deliver_start' %}",
+        data: {
+            target: target,
+            expire_days: expire_days,
+            start_date: start_date,
+        },
+        next_url: function() {
+            alert('배송을 시작합니다.');
+            location.reload();
+        }
+    })
+}
+
+function remove_history() {
+    let target = [];
+    $('td input[type=checkbox]').each(function () {
+        if (this.checked === true) {
+            let deveui = this['name'].split('-')[2];
+            target.push(deveui);
+        }
+    });
+
+    if (target.length === 0) {
+        alert('디바이스를 선택하시기 바랍니다.');
+        return;
+    }
+
+    if (!confirm('디바이스의 기존 로그가 모두 삭제됩니다.\n\n' + target + '의 기록을 삭제하시겠습니까?')) {
+        return;
+    }
+
+    sw_post({
+        request_url: "{% url 'device.remove_history' %}",
+        data: {
+            target: target,
+        },
+        next_url: function() {
+            alert('기록을 삭제했습니다.');
+            location.reload();
+        }
+    })
+}
+
+</script>
+{% endblock %}

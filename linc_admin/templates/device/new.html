@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}NEW DEVICE{% endblock %}
+
+{% block style %}
+table tr td{
+   padding:3px !important;
+}
+
+table.class_selector td{
+   padding:3px !important;
+}
+{% endblock %}
+
+{% block main %}
+<div class="mt-2">
+    <span class="mr-2">기관 :</span>
+    <select id="select-tp">
+        {% for tp_id in tp_list %}
+        <option value="{{ tp_id }}">{{ tp_id }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" id="txt-country-code" class="ml-2" value="{{ country_code }}" placeholder="국가코드" maxlength="2" size="10"/>
+    <input type="button" id="btn-create" class="btn btn-info ml-2" value="생성" />
+    <input type="button" id="btn-search" class="btn btn-info ml-2" value="검색" />
+</div>
+
+<div>
+<table class="table table-hover text-monospace">
+    <thead>
+        <th>country code</th>
+        <th>devEUI</th>
+        <th>product key</th>
+        <th>appkey</th>
+    </thead>
+    <tbody>
+    {% for info in this_list %}
+        <tr>
+            <td rowspan="2">{{ info.country_code }}</td>
+            <td rowspan="2">{{ info.deveui }}</td>
+            <td>{{ info.product_key }}</td>
+            <td>{{ info.app_key }}</td>
+        </tr>
+        <tr>
+            <td>{{ info.product_key2 }}</td>
+            <td>{{ info.app_key2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}
+
+{% block script_body %}
+<script>
+$(function() {
+    $('#btn-create').on('click', function() {
+        let country_code = $('#txt-country-code').val();
+
+        if (country_code.length !== 2) {
+            alert('2자리 국가코드를 입력하십시오.');
+            return false;
+        }
+
+        sw_post({
+            'url': '{{ request.path }}',
+            'data': {
+                'country_code': country_code,
+                'tp_id': $('#select-tp').val(),
+            },
+            'next_url': function(result) {
+                alert(JSON.stringify(result));
+
+                if (!result.data.valid_range) {
+                    alert('RANGE 입력이 필요한 디바이스입니다.');
+                }
+            }
+        });
+
+        return false;
+    });
+
+    $('#btn-search').on('click', function() {
+        let country_code = $('#txt-country-code').val();
+
+        location.href = '{{ request.path }}?country_code=' + country_code;
+
+        return false;
+    });
+});
+</script>
+{% endblock %}

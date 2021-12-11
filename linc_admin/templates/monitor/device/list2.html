@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        .wrapper {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        #sidebar {
+            width: 250px;
+            top: 0;
+            left: 0;
+            height:  100vh;
+            background: #7386D5;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        #content {
+            width: 100%;
+            height: 100%;
+        }
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        #map {
+            {#width: 100%;#}
+            height: 100%;
+        }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <nav id="sidebar">
+
+    </nav>
+
+    <div id="content">
+        <div id="map"></div>
+    </div>
+</div>
+
+<script>
+var map;
+
+function initMap() {
+    let divMap = document.getElementById('map');
+    console.log(divMap);
+    map = new google.maps.Map(divMap, {
+        center: {
+            lat: {{ center_latitude }},
+            lng: {{ center_longitude }},
+        },
+        zoom: 14
+    });
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDGgHct82rGZipyIHiVLqgzQ1zWGaGL5MU&callback=initMap" async defer></script>
+
+</body>
+</html>

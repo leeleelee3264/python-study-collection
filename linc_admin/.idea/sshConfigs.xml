@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="f74cebc0-af6b-4209-ada8-09302af7e0c2" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="1637c3eb-321f-4c9f-84b7-2661168c4196" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="7e7d6296-c7db-4b44-83c8-88f545429367" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="72de6589-73b3-4ff2-b789-7de832cd61f1" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="634891f0-9a7f-4e12-90ef-2da2af39a86a" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="472924cc-9512-4be4-aeab-45be208a633c" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+      <sshConfig authType="PASSWORD" host="192.168.0.100" id="0d87ac97-98b1-4d5f-8903-3dffc9d5f741" port="22" customName="linc_admin" nameFormat="CUSTOM" />
+    </configs>
+  </component>
+</project>

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<table class="table table-hover">
+<thead>
+    <th>TP ID</th>
+    <th>TOKEN</th>
+    <th>수정</th>
+</thead>
+<tbody>
+    {% for row in this_list %}
+    <tr>
+        <td>{{ row.tp_id}}</td>
+        <td><input type="text" id="txt-token-{{ row.tp_id }}" value="{{ row.token}}" size="100" /></td>
+        <td><input type="button" id="btn_modify-{{ row.tp_id }}" class="btn-modify" value="수정" /></td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{% endblock %}
+
+{% block script_body %}
+<script>
+$(function() {
+    $('.btn-modify').on('click', function() {
+        var tp_id = this['id'].split('-')[1];
+        var token = $('#txt-token-' + tp_id).val();
+
+        sw_post({
+            {#request_url: '{% url "device.extend_expire" %}',#}
+            data: {
+                'tp_id': tp_id,
+                'token': token,
+            },
+            next_url: function() {
+                alert('수정하였습니다.');
+                location.reload();
+            }
+        });
+
+        return false;
+    });
+
+});
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+/* reset */
+* { margin:0; padding:0; }
+li { list-style:none;}
+a { text-decoration:none; }
+
+/* common */
+.wrapper { width:1170px; margin:0 auto; }
+.clearfix::after { content:''; display:block; clear:both; }
+
+body { font-family:'Open Sans', sans-serif; }
+
+header { background: rgba(255,255,255,0.5); height:80px;
+    position:fixed; width:100%; z-index:9999;
+    
+}
+
+h1 { float:left; font-size:24px; color:#000; line-height:80px; padding: 0 10px;}
+
+.menu { float:right; }
+.menu li { float:left; }
+.menu a { display:block; line-height:80px; padding:0 15px; color:#fff; font-size:12px; }
+
+ #container { width:200px; height:80px; text-align:center; vertical-align:middle; display:table-cell; } 
+ #container img {width:40px; height:40px; margin-right:10px;}
+#block { width:40px; height:40px; background-color:#ffd700; display:inline-block; margin:0 10px;}
+
+/*검색창*/
+
+#sch_area {width:800px; height:80px; text-align:right; vertical-align:middle; display:table-cell;}
+
+.find_window {
+	display: inline-block;
+	width: 366px; height: 34px;
+	border: 3px solid #aaaaaa;
+	background: white;
+}
+.input_text {
+	width: 348px; height: 21px;
+	margin: 6px 0 0 9px;
+	border: 0;
+	line-height: 21px;
+	font-weight: bold;
+	font-size: 16px;
+	outline: none;
+}
+.sch_smit {
+	width: 54px; height: 40px;
+	margin: 0; border: 0;
+	vertical-align: top;
+	background: #aaaaaa;
+	color: white;
+	font-weight: bold;
+	border-radius: 1px;
+	cursor: pointer;
+}
+/* #main */
+#main { height:650px; padding-top:76px; }
+
+h2 { padding:40px 0 20px; color:#555; font-size:30px; font-weight:400; }
+#main h2 { color:#fff; }
+#main p { color:#fff; margin-bottom:20px; font-size:16px; }
+
+/* #team */
+#team { text-align:right; width:200px; float:right; padding-right:20px}
+.team_list {position:relative; top: 30px; left: 13px; width:220px; height:580px; overflow-x: hidden; overflow-y: scroll;}
+.team_list li { float:left; width: 80%; padding:0 10px; box-sizing:border-box; }
+.team_list li img {width:50%; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
